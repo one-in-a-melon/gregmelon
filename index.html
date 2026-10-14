@@ -243,6 +243,15 @@ img.headshot{width:84px;height:84px;padding:0;border-radius:50%;object-fit:cover
 .copy .sub.bright{color:#eef2f8;text-shadow:0 1px 14px rgba(5,7,12,.95),0 0 2px rgba(5,7,12,.8)}
 
 footer .credit{display:block;margin-top:.6rem;font-size:.72rem;opacity:.6;line-height:1.4}
+
+/* reel thumbnails */
+.reels{grid-template-columns:repeat(3,minmax(0,126px))}
+.reel.thumb{padding:0;overflow:hidden;position:relative}
+.reel.thumb::before{display:none}
+.reel.thumb img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .35s ease}
+.reel.thumb:hover img{transform:scale(1.04)}
+footer .flink{display:inline-block;margin-top:.5rem;color:inherit;text-decoration:underline;text-underline-offset:3px;opacity:.85}
+footer .flink:hover{color:var(--signal);opacity:1}
 </style>
 </head><body>
 <canvas id="gl" aria-hidden="true"></canvas>
@@ -277,6 +286,7 @@ footer .credit{display:block;margin-top:.6rem;font-size:.72rem;opacity:.6;line-h
     <div class="stage"><div class="copy">
       <div class="howdy"><img class="headshot" src="tex/headshot.jpg" alt="Gregory Melon" width="160" height="160"><h2>Howdy</h2></div>
       <p>I'm Gregory Melon, a senior marketing executive with 15 years of experience building marketing engines for companies that operate at the edge of what's possible.</p>
+      <a class="btn" href="https://www.gregorymelon.com/about">About Me</a>
     </div></div>
   </section>
 
@@ -324,7 +334,7 @@ footer .credit{display:block;margin-top:.6rem;font-size:.72rem;opacity:.6;line-h
     <div class="stage"><div class="copy">
       <h2>Reading Recs</h2>
       <p>You can learn a lot about someone based on the books they read. Here are some of my favorite reads that I recommend frequently.</p>
-      <a class="btn" href="https://one-in-a-melon.github.io/book-randomizer/" target="_blank" rel="noopener">Open the book randomizer</a>
+      <a class="btn" href="https://www.gregorymelon.com/book-randomizer">Open the book randomizer</a>
       <h3 class="minor">My Field Notes</h3>
       <div class="notes">
         <a class="note" href="https://www.gregorymelon.com/field-notes/bots-now-outnumber-humans-online-what-it-means-for-your-marketing" target="_blank" rel="noopener"><b>Buckle Up: Bots Now Outnumber Humans Online. What It Means For Your Marketing.</b><span>Read more →</span></a>
@@ -364,11 +374,11 @@ footer .credit{display:block;margin-top:.6rem;font-size:.72rem;opacity:.6;line-h
       </div>
       <h4 class="small-head">Some past viral content</h4>
       <div class="reels">
-        <a class="reel" href="https://www.instagram.com/reel/DJO6JSSxLz0/" target="_blank" rel="noopener">Zero-G<br>reel</a>
-        <a class="reel" href="https://www.instagram.com/reel/DScspXEjobg/" target="_blank" rel="noopener">Erin Winick Anthony</a>
-        <a class="reel" href="https://www.instagram.com/reel/DBhprVpRQA7/" target="_blank" rel="noopener">Zero-G<br>reel</a>
+        <a class="reel thumb" href="https://www.instagram.com/reel/DJO6JSSxLz0/" target="_blank" rel="noopener"><img src="tex/reel1.jpg" alt="But make it microgravity: lightsaber duel in zero gravity" width="252" height="448" loading="lazy"></a>
+        <a class="reel thumb" href="https://www.instagram.com/reel/DScspXEjobg/" target="_blank" rel="noopener"><img src="tex/reel2.jpg" alt="Throwing paper airplanes in different gravities" width="252" height="448" loading="lazy"></a>
+        <a class="reel thumb" href="https://www.instagram.com/reel/DBhprVpRQA7/" target="_blank" rel="noopener"><img src="tex/reel3.jpg" alt="Wrestling in lunar and Martian gravity" width="252" height="448" loading="lazy"></a>
       </div>
-      <footer><strong>Gregory Melon</strong>Marketing Executive<br>© 2026 Gregory Melon. All rights reserved.<br><span class="credit">Earth imagery: NASA Visible Earth (Blue Marble, Black Marble). Lunar imagery and elevation: NASA LRO / LOLA.</span></footer>
+      <footer><strong>Gregory Melon</strong>Marketing Executive<br>© 2026 Gregory Melon. All rights reserved. Unauthorized use or reproduction of any content on this site is prohibited.<br><a class="flink" href="https://www.gregorymelon.com/privacy-policy">Privacy Policy</a><br><span class="credit">Earth imagery: NASA Visible Earth (Blue Marble, Black Marble). Lunar imagery and elevation: NASA LRO / LOLA.</span></footer>
     </div></div>
   </section>
 </main>
@@ -890,7 +900,7 @@ function clearMeteors(){ meteors.forEach(m=>m.el.remove()); meteors.length=0; sp
 // Cupola, built from the reference photos: a round nadir window ringed by six trapezoid windows in a black anodized frame,
 // each window set in stepped bezels with copper and silver seal rings, bolt rows, blue shutter handles, labels and stowed cloth bags.
 const cup = new THREE.Group(); scene.add(cup);
-const RANDOMIZER='https://one-in-a-melon.github.io/book-randomizer/';
+const RANDOMIZER='https://www.gregorymelon.com/book-randomizer';
 const CUP_H=.38, CAM_IN=.0035, CUP_PITCH=40;
 const cupF=V(Math.cos(rad(CUP_PITCH)),-Math.sin(rad(CUP_PITCH)),0), cupU=V(Math.sin(rad(CUP_PITCH)),Math.cos(rad(CUP_PITCH)),0), cupR=V(0,0,1), cupCam=V(0,CAM_IN,0);
 const book = new THREE.Group();
