@@ -1285,21 +1285,27 @@ const GRADE = {
   }`
 };
 let composer=null, bloom=null, grade=null, fxaa=null;
+// Graphics mode. Snapdragon (Adreno) laptops drop whole frames with the full post-processing chain, so they get a lighter one.
+// ?gfx=full | lite | basic overrides it for testing.
+const GPU=(()=>{ try{ const g=renderer.getContext(), d=g.getExtension('WEBGL_debug_renderer_info'); return d?String(g.getParameter(d.UNMASKED_RENDERER_WEBGL)):''; }catch(e){ return ''; } })();
+const GFX=(new URLSearchParams(location.search).get('gfx')) || (/adreno|qualcomm|snapdragon/i.test(GPU) ? 'lite' : 'full');
 if(THREE.EffectComposer && THREE.UnrealBloomPass && THREE.ShaderPass){
   try{
-    const rtOpts={type:THREE.HalfFloatType, format:THREE.RGBAFormat, minFilter:THREE.LinearFilter, magFilter:THREE.LinearFilter};
+    const rtOpts={type:GFX==='basic'?THREE.UnsignedByteType:THREE.HalfFloatType, format:THREE.RGBAFormat, minFilter:THREE.LinearFilter, magFilter:THREE.LinearFilter};
     // plain render target: three r128's multisampled target drops its depth buffer on some desktop GPUs, which blanked Earth and the stars
     const rt=new THREE.WebGLRenderTarget(2,2,rtOpts);
     composer=new THREE.EffectComposer(renderer, rt);
     composer.addPass(new THREE.RenderPass(scene,camera));
+    if(GFX==='full'){
     composer.addPass(new THREE.ShaderPass({uniforms:{tDiffuse:{value:null}}, vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
       fragmentShader:'uniform sampler2D tDiffuse;varying vec2 vUv;void main(){vec3 c=texture2D(tDiffuse,vUv).rgb;c=max(min(c,vec3(48.0)),vec3(0.0));if(!(c.r+c.g+c.b<1e4))c=vec3(0.0);gl_FragColor=vec4(c,1.0);}'}));
     bloom=new THREE.UnrealBloomPass(new THREE.Vector2(256,256), tier==='high'?.6:.48, .45, 1.4); composer.addPass(bloom);
     // keep the glow chain in half float: 8-bit mips quantize faint glow into visible blocky steps once graded
     [bloom.renderTargetBright].concat(bloom.renderTargetsHorizontal, bloom.renderTargetsVertical).forEach(t=>{ if(t) t.texture.type=THREE.HalfFloatType; });
     { const hp=bloom.materialHighPassFilter; hp.fragmentShader=hp.fragmentShader.replace('gl_FragColor = mix( outputColor, texel, alpha );','gl_FragColor = min( mix( outputColor, texel, alpha ), vec4( 1.6 ) );'); hp.needsUpdate=true; }
+    }
     grade=new THREE.ShaderPass(GRADE); composer.addPass(grade);
-    if(THREE.FXAAShader){ fxaa=new THREE.ShaderPass(THREE.FXAAShader); composer.addPass(fxaa); }
+    if(GFX==='full' && THREE.FXAAShader){ fxaa=new THREE.ShaderPass(THREE.FXAAShader); composer.addPass(fxaa); }
   }catch(e){ composer=null; }
 }
 if(!composer){ renderer.outputEncoding=THREE.sRGBEncoding; renderer.toneMapping=THREE.ACESFilmicToneMapping; }
@@ -1314,7 +1320,7 @@ function resize(){
   if(nw===W && Math.abs(nh-H)<140 && W){ measure(); return; }
   W=nw; H=nh; portrait=W/H<.85; renderer.setSize(W,H,false); camera.aspect=W/H;
   // pixel budget: big retina windows render at a slightly lower ratio so the GPU isn't pushed past its memory
-  const PR=Math.max(1, Math.min(DPR, Math.sqrt(4.2e6/(W*H)))); renderer.setPixelRatio(PR); renderer.setSize(W,H,false);
+  const PR=Math.max(1, Math.min(DPR, Math.sqrt((GFX==='full'?4.2e6:3e6)/(W*H)))); renderer.setPixelRatio(PR); renderer.setSize(W,H,false);
   if(composer){ composer.setPixelRatio(PR); composer.setSize(W,H); grade.uniforms.uRes.value.set(W*PR,H*PR); if(fxaa) fxaa.uniforms.resolution.value.set(1/(W*PR),1/(H*PR)); }
   buildFree(); measure();
 }
