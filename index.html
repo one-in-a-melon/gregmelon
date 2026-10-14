@@ -350,7 +350,7 @@ footer .credit{display:block;margin-top:.6rem;font-size:.72rem;opacity:.6;line-h
       <h2>Let’s Talk</h2>
       <p>If you're building something ambitious and need a marketing leader who's done this before — in tough industries, with lean teams, under real pressure — I'd love to hear what you're working on.</p>
       <!-- Contact form: paste your Formspree address between the quotes in data-endpoint, e.g. https://formspree.io/f/abcdwxyz -->
-      <form id="form" novalidate data-endpoint="https://formspree.io/f/xvkzvolz">
+      <form id="form" novalidate data-endpoint="">
         <label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name">
         <label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email">
         <label for="f-msg">What are you working on?</label><textarea id="f-msg" name="message" rows="3"></textarea>
@@ -402,6 +402,8 @@ try{ renderer = new THREE.WebGLRenderer({canvas, antialias:true, powerPreference
 const DPR = Math.min(devicePixelRatio||1, 2);
 renderer.setPixelRatio(DPR);
 renderer.toneMapping = THREE.NoToneMapping;
+canvas.addEventListener('webglcontextlost',e=>{ e.preventDefault(); },false);
+canvas.addEventListener('webglcontextrestored',()=>{ location.reload(); },false);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(50, 1, .001, 6000);
 const V = (x,y,z)=>new THREE.Vector3(x||0,y||0,z||0);
@@ -1276,8 +1278,8 @@ let composer=null, bloom=null, grade=null, fxaa=null;
 if(THREE.EffectComposer && THREE.UnrealBloomPass && THREE.ShaderPass){
   try{
     const rtOpts={type:THREE.HalfFloatType, format:THREE.RGBAFormat, minFilter:THREE.LinearFilter, magFilter:THREE.LinearFilter};
-    const canMSAA=renderer.capabilities.isWebGL2 && THREE.WebGLMultisampleRenderTarget && renderer.extensions.get('EXT_color_buffer_float');
-    const rt=canMSAA ? new THREE.WebGLMultisampleRenderTarget(2,2,rtOpts) : new THREE.WebGLRenderTarget(2,2,rtOpts); if(canMSAA) rt.samples=coarse?2:4;
+    // plain render target: three r128's multisampled target drops its depth buffer on some desktop GPUs, which blanked Earth and the stars
+    const rt=new THREE.WebGLRenderTarget(2,2,rtOpts);
     composer=new THREE.EffectComposer(renderer, rt);
     composer.addPass(new THREE.RenderPass(scene,camera));
     composer.addPass(new THREE.ShaderPass({uniforms:{tDiffuse:{value:null}}, vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
@@ -1301,7 +1303,9 @@ function resize(){
   const nw=innerWidth, nh=innerHeight;
   if(nw===W && Math.abs(nh-H)<140 && W){ measure(); return; }
   W=nw; H=nh; portrait=W/H<.85; renderer.setSize(W,H,false); camera.aspect=W/H;
-  if(composer){ composer.setPixelRatio(DPR); composer.setSize(W,H); grade.uniforms.uRes.value.set(W*DPR,H*DPR); if(fxaa) fxaa.uniforms.resolution.value.set(1/(W*DPR),1/(H*DPR)); }
+  // pixel budget: big retina windows render at a slightly lower ratio so the GPU isn't pushed past its memory
+  const PR=Math.max(1, Math.min(DPR, Math.sqrt(4.2e6/(W*H)))); renderer.setPixelRatio(PR); renderer.setSize(W,H,false);
+  if(composer){ composer.setPixelRatio(PR); composer.setSize(W,H); grade.uniforms.uRes.value.set(W*PR,H*PR); if(fxaa) fxaa.uniforms.resolution.value.set(1/(W*PR),1/(H*PR)); }
   buildFree(); measure();
 }
 addEventListener('resize', resize); resize(); addEventListener('load', measure);
